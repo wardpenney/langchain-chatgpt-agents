@@ -4,17 +4,20 @@ from langchain.prompts import (
     HumanMessagePromptTemplate,
     MessagesPlaceholder
 )
+from langchain.schema import SystemMessage
 from langchain.agents import OpenAIFunctionsAgent, AgentExecutor
 from dotenv import load_dotenv
-from tools.sql import run_query_tool
+from tools.sql import run_query_tool, list_tables
 
 
 load_dotenv()
 
 chat = ChatOpenAI()
 
+tables = list_tables()
 prompt = ChatPromptTemplate.from_messages(
   messages=[
+    SystemMessage(content=f"You are a helpful assistant that can run SQL queries. The following tables are available: {tables}"),
     HumanMessagePromptTemplate.from_template("{input}"),
     MessagesPlaceholder(variable_name="agent_scratchpad"),
   ]
@@ -34,4 +37,4 @@ agent_executor = AgentExecutor(
   verbose=True,
 )
 
-agent_executor("How many users are in the database?")
+agent_executor("How many users have a shipping address in the database?")
