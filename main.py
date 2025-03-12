@@ -6,6 +6,7 @@ from langchain.prompts import (
 )
 from langchain.schema import SystemMessage
 from langchain.agents import OpenAIFunctionsAgent, AgentExecutor
+from langchain.memory import ConversationBufferMemory
 from dotenv import load_dotenv
 from tools.sql import run_query_tool, list_tables, describe_tables_tool
 from tools.report import write_report_tool
@@ -26,9 +27,15 @@ prompt = ChatPromptTemplate.from_messages(
         f"If you need to list the tables, use the `list_tables` tool.\n"
       ),
     ),
+    MessagesPlaceholder(variable_name="chat_history"),
     HumanMessagePromptTemplate.from_template("{input}"),
     MessagesPlaceholder(variable_name="agent_scratchpad"),
   ]
+)
+
+memory = ConversationBufferMemory(
+  memory_key="chat_history",
+  return_messages=True
 )
 
 tools = [
@@ -47,6 +54,13 @@ agent_executor = AgentExecutor(
   agent=agent,
   tools=tools,
   verbose=True,
+  memory=memory
 )
 
-agent_executor("Summarize the top 5 most popular products in the database. Write the report to a file called 'report.html'.")
+agent_executor(
+  "How many orders are there in the database? Write the results to a html report with the extension .html."
+)
+
+agent_executor(
+  "Repeat the exact same process for users."
+)
